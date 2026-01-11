@@ -1,0 +1,8 @@
+{
+  "name": "ViralCommerce AI - AliExpress Viral Agent",
+  "description": "An autonomous agent that transforms AliExpress product data into high-converting viral video assets for Reels, TikTok, and Shorts using Gemini AI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

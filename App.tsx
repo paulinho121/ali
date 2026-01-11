@@ -62,7 +62,7 @@ const App: React.FC = () => {
   const handleRunAutomation = async () => {
     setIsRunningAutomation(true);
     try {
-      const response = await fetch('http://localhost:5000/api/automation/run', { method: 'POST' });
+      const response = await fetch('/api/automation/run', { method: 'POST' });
       const data = await response.json();
       setAutomationStatus(data);
     } catch (err) {
@@ -70,6 +70,10 @@ const App: React.FC = () => {
     } finally {
       setIsRunningAutomation(false);
     }
+  };
+
+  const handleConnectTikTok = () => {
+    window.location.href = '/api/auth/tiktok';
   };
 
   return (
@@ -87,13 +91,21 @@ const App: React.FC = () => {
               </h3>
               <p className="text-xs text-slate-400">Postagem diária ativa às 09:00</p>
             </div>
-            <button
-              onClick={handleRunAutomation}
-              disabled={isRunningAutomation}
-              className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50"
-            >
-              {isRunningAutomation ? 'Processando...' : 'Rodar Agora'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleConnectTikTok}
+                className="bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-slate-700 transition-all border border-slate-700"
+              >
+                Conectar TikTok
+              </button>
+              <button
+                onClick={handleRunAutomation}
+                disabled={isRunningAutomation}
+                className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50"
+              >
+                {isRunningAutomation ? 'Processando...' : 'Rodar Agora'}
+              </button>
+            </div>
           </div>
 
           {automationStatus && (

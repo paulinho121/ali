@@ -78,10 +78,12 @@ app.get('/api/auth/tiktok/callback', async (req, res) => {
 });
 
 // Automation Endpoint
-app.get('/api/automation/run', async (req, res) => {
+app.all('/api/automation/run', async (req, res) => {
     // Basic protection (can be replaced with an API Key in headers)
     const cronSecret = req.headers['x-vercel-cron'];
-    if (process.env.NODE_ENV === 'production' && !cronSecret) {
+    const isManual = req.method === 'POST';
+
+    if (process.env.NODE_ENV === 'production' && !cronSecret && !isManual) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 

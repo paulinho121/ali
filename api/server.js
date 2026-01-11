@@ -133,10 +133,28 @@ app.all('/api/server', (req, res) => {
 async function runAutomation() {
     console.log('--- Iniciando Automação Diária ---');
     const trend = await trends.getDailyTrends();
-    const productsRes = await aliexpress.searchByKeywords(trend[0]);
-    const productList = productsRes?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product;
+    console.log('Tendência do dia:', trend.niche);
 
-    if (!productList || productList.length === 0) throw new Error('No products found');
+    let productList = [];
+
+    // Try searching by keywords
+    try {
+        const searchRes = await aliexpress.searchByKeywords(trend.niche);
+        productList = searchRes?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product || [];
+        console.log(`Encontrados ${productList.length} produtos por palavras-chave.`);
+    } catch (e) {
+        console.error('Erro na busca por palavras-chave:', e.message);
+    }
+
+    // Fallback: If no products found, try Hot Products
+    if (!productList || productList.length === 0) {
+        console.log('Fallback: Buscando produtos quentes...');
+        const hotRes = await aliexpress.getHotProducts();
+        productList = hotRes?.aliexpress_affiliate_hotproduct_query_response?.resp_result?.result?.products?.product || [];
+        console.log(`Encontrados ${productList.length} produtos quentes.`);
+    }
+
+    if (!productList || productList.length === 0) throw new Error('Nenhum produto encontrado no AliExpress.');
 
     const topProduct = productList[0];
     const affiliateRes = await aliexpress.generateAffiliateLinks(topProduct.product_detail_url);

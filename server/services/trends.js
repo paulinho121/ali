@@ -3,11 +3,11 @@
 // For now, we use a mix of hardcoded viral niches and Gemini-powered brainstorming
 
 const niches = [
-    'utilidades domésticas criativas',
-    'gadgets tecnológicos para setup',
-    'brinquedos inovadores para pets',
-    'beleza e cuidados pessoais inteligentes',
-    'acessórios de carro práticos'
+    'creative home utilities',
+    'tech gadgets for desk setup',
+    'innovative pet toys',
+    'smart beauty and personal care',
+    'practical car accessories'
 ];
 
 async function getDailyTrends() {

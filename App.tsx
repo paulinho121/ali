@@ -131,7 +131,12 @@ const App: React.FC = () => {
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                       TikTok: {automationStatus.result?.social?.tiktok ? 'OK' : 'Falhou'}
                     </div>
-                    <div className={`flex items-center gap-1 ${automationStatus.result?.social?.ig ? 'text-green-400' : 'text-slate-500'}`}>
+                    {automationStatus.result?.social?.tiktokErr && (
+                      <div className="text-[10px] text-red-500/70 ml-5 -mt-1 block">
+                        Erro: {typeof automationStatus.result.social.tiktokErr === 'object' ? JSON.stringify(automationStatus.result.social.tiktokErr) : automationStatus.result.social.tiktokErr}
+                      </div>
+                    )}
+                    <div className={`flex items-center gap-1 mt-1 ${automationStatus.result?.social?.ig ? 'text-green-400' : 'text-slate-500'}`}>
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                       Instagram: {automationStatus.result?.social?.ig ? 'OK' : 'Falhou'}
                     </div>

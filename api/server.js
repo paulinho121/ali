@@ -70,7 +70,7 @@ app.get(['/api/auth/tiktok', '/api/server/auth/tiktok'], (req, res) => {
         .replace(/=/g, '');
 
     // Added video.publish as it is often required for Content Posting API
-    const scope = 'video.upload,video.publish';
+    const scope = 'video.upload';
     const state = Math.random().toString(36).substring(7);
 
     const authUrl = `https://www.tiktok.com/v2/auth/authorize/?client_key=${clientKey}&scope=${scope}&lang=en&redirect_uri=${redirectUri}&response_type=code&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;

@@ -22,6 +22,20 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// Debug Redirect URI
+app.get('/api/auth/debug', (req, res) => {
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `${protocol}://${host}`;
+    const redirectUri = `${redirectBase}/api/auth/tiktok/callback`;
+    res.json({
+        host,
+        protocol,
+        TIKTOK_REDIRECT_BASE_URL_ENV: process.env.TIKTOK_REDIRECT_BASE_URL || "NOT SET",
+        expected_redirect_uri: redirectUri
+    });
+});
+
 // TikTok OAuth Routes
 let currentCodeVerifier = ""; // Note: In serverless, this won't persist across requests if using different instances. 
 // For production, we should use a database (Supabase/Redis) to store the verifier/state.

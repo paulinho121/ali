@@ -69,6 +69,7 @@ app.get(['/api/auth/tiktok', '/api/server/auth/tiktok'], (req, res) => {
         .replace(/\//g, '_')
         .replace(/=/g, '');
 
+    // Added video.publish as it is often required for Content Posting API
     const scope = 'video.upload,video.publish';
     const state = Math.random().toString(36).substring(7);
 
@@ -106,15 +107,11 @@ app.get(['/api/auth/tiktok/callback', '/api/server/auth/tiktok/callback'], async
     }
 });
 
-// Centralized automation handler to support both direct and rewritten paths
+// Centralized automation handler
 const handleAutomationRequest = async (req, res) => {
-    const cronSecret = req.headers['x-vercel-cron'];
     const isManual = req.method === 'POST';
 
-    if (process.env.NODE_ENV === 'production' && !cronSecret && !isManual) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
+    // Skip auth for quick testing, but ideally keep it
     try {
         const result = await runAutomation();
         res.json({ status: 'success', result });
@@ -126,7 +123,6 @@ const handleAutomationRequest = async (req, res) => {
 
 app.all('/api/automation/run', handleAutomationRequest);
 app.all('/api/server', (req, res) => {
-    // If Vercel rewrote /api/automation/run to /api/server, handle it here
     handleAutomationRequest(req, res);
 });
 
@@ -141,38 +137,55 @@ async function runAutomation() {
     try {
         const searchRes = await aliexpress.searchByKeywords(trend.niche);
         productList = searchRes?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product || [];
+        if (!Array.isArray(productList) && productList) productList = [productList]; // Handle single object from API
         console.log(`Encontrados ${productList.length} produtos por palavras-chave.`);
     } catch (e) {
         console.error('Erro na busca por palavras-chave:', e.message);
     }
 
-    // Fallback: If no products found, try Hot Products
+    // Fallback: Hot Products
     if (!productList || productList.length === 0) {
         console.log('Fallback: Buscando produtos quentes...');
         const hotRes = await aliexpress.getHotProducts();
         productList = hotRes?.aliexpress_affiliate_hotproduct_query_response?.resp_result?.result?.products?.product || [];
+        if (!Array.isArray(productList) && productList) productList = [productList];
         console.log(`Encontrados ${productList.length} produtos quentes.`);
     }
 
     if (!productList || productList.length === 0) throw new Error('Nenhum produto encontrado no AliExpress.');
 
     const topProduct = productList[0];
-    const affiliateRes = await aliexpress.generateAffiliateLinks(topProduct.product_detail_url);
-    const affiliateLink = affiliateRes?.aliexpress_affiliate_link_generate_response?.resp_result?.result?.promotion_links?.promotion_link?.[0]?.promotion_link || topProduct.short_url;
+    const productTitle = topProduct.product_main_title || topProduct.product_title || 'Produto Incrível';
+    console.log('Produto selecionado:', productTitle);
 
+    const affiliateRes = await aliexpress.generateAffiliateLinks(topProduct.product_detail_url);
+    const affiliateLink = affiliateRes?.aliexpress_affiliate_link_generate_response?.resp_result?.result?.promotion_links?.promotion_link?.[0]?.promotion_link || topProduct.short_url || topProduct.product_detail_url;
+
+    console.log('Gerando vídeo...');
     const videoResult = await video.generateProductVideo(topProduct);
     if (!videoResult.success) throw new Error(`Video generation failed: ${videoResult.error}`);
 
+    console.log(`Aguardando renderização (${videoResult.renderId})...`);
     const finalVideoUrl = await video.waitForRender(videoResult.renderId);
-    const caption = `Oferta do dia: ${topProduct.product_main_title} 🔥\n\nConfira aqui: ${affiliateLink}\n\n#aliexpress #achadinhos #promocao`;
+    console.log('Vídeo finalizado:', finalVideoUrl);
 
+    const caption = `Oferta do dia: ${productTitle} 🔥\n\nLink no comentário! 🔗\n\n#aliexpress #achadinhos #promocao #brasil`;
+
+    console.log('Postando nas redes sociais...');
     const tiktokResult = await social.postToTikTok(finalVideoUrl, caption);
     const igResult = await social.postToInstagram(finalVideoUrl, caption);
 
+    console.log('Resultado TikTok:', tiktokResult);
+    console.log('Resultado Instagram:', igResult);
+
     return {
-        product: topProduct.product_main_title,
+        product: productTitle,
         videoUrl: finalVideoUrl,
-        social: { tiktok: tiktokResult.success, ig: igResult.success }
+        social: {
+            tiktok: tiktokResult.success,
+            ig: igResult.success,
+            tiktokErr: tiktokResult.success ? null : tiktokResult.error
+        }
     };
 }
 

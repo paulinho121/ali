@@ -26,12 +26,21 @@ app.get('/api/health', (req, res) => {
 app.get('/api/auth/debug', (req, res) => {
     const host = req.headers.host;
     const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `${protocol}://${host}`;
+
+    let redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL;
+    let detection = "ENV_VAR";
+
+    if (!redirectBase || redirectBase.includes('loca.lt')) {
+        redirectBase = `${protocol}://${host}`;
+        detection = redirectBase ? "HOST_HEADER (loca.lt ignored)" : "HOST_HEADER";
+    }
+
     const redirectUri = `${redirectBase}/api/auth/tiktok/callback`;
     res.json({
         host,
         protocol,
         TIKTOK_REDIRECT_BASE_URL_ENV: process.env.TIKTOK_REDIRECT_BASE_URL || "NOT SET",
+        detection_method: detection,
         expected_redirect_uri: redirectUri
     });
 });
@@ -45,7 +54,13 @@ app.get('/api/auth/tiktok', (req, res) => {
     const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
     const host = req.headers.host;
     const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `${protocol}://${host}`;
+
+    let redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL;
+    // Skip if it's the old local tunnel URL
+    if (!redirectBase || redirectBase.includes('loca.lt')) {
+        redirectBase = `${protocol}://${host}`;
+    }
+
     const redirectUri = encodeURIComponent(`${redirectBase}/api/auth/tiktok/callback`);
 
     currentCodeVerifier = crypto.randomBytes(32).toString('base64url');
@@ -71,7 +86,11 @@ app.get('/api/auth/tiktok/callback', async (req, res) => {
 
     const host = req.headers.host;
     const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `${protocol}://${host}`;
+
+    let redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL;
+    if (!redirectBase || redirectBase.includes('loca.lt')) {
+        redirectBase = `${protocol}://${host}`;
+    }
 
     try {
         const response = await axios.post('https://open.tiktokapis.com/v2/oauth/token/',

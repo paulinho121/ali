@@ -109,19 +109,39 @@ const App: React.FC = () => {
           </div>
 
           {automationStatus && (
-            <div className="bg-slate-950/50 rounded-2xl p-4 border border-slate-800/50 text-sm">
-              <p className="text-slate-500 mb-2 font-mono">Última execução: {new Date().toLocaleTimeString()}</p>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-1 text-green-400">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  TikTok: OK
-                </div>
-                <div className="flex items-center gap-1 text-green-400">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  Instagram: OK
-                </div>
-              </div>
-              <p className="mt-2 font-bold text-orange-500">Produto: {automationStatus.result?.product}</p>
+            <div className={`bg-slate-950/50 rounded-2xl p-4 border border-slate-800/50 text-sm ${automationStatus.status === 'error' ? 'border-red-500/30' : ''
+              }`}>
+              <p className="text-slate-500 mb-2 font-mono">Status: {
+                automationStatus.status === 'in_progress' ? '⏳ Processando...' :
+                  automationStatus.status === 'success' ? '✅ Concluído' : '❌ Erro'
+              }</p>
+
+              {automationStatus.status === 'in_progress' && (
+                <p className="text-slate-400 italic">{automationStatus.message}</p>
+              )}
+
+              {automationStatus.status === 'error' && (
+                <p className="text-red-400 font-bold">{automationStatus.message}</p>
+              )}
+
+              {automationStatus.status === 'success' && (
+                <>
+                  <div className="flex gap-4">
+                    <div className={`flex items-center gap-1 ${automationStatus.result?.social?.tiktok ? 'text-green-400' : 'text-slate-500'}`}>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                      TikTok: {automationStatus.result?.social?.tiktok ? 'OK' : 'Falhou'}
+                    </div>
+                    <div className={`flex items-center gap-1 ${automationStatus.result?.social?.ig ? 'text-green-400' : 'text-slate-500'}`}>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                      Instagram: {automationStatus.result?.social?.ig ? 'OK' : 'Falhou'}
+                    </div>
+                  </div>
+                  <p className="mt-2 font-bold text-orange-500">Produto: {automationStatus.result?.product}</p>
+                  {automationStatus.result?.videoUrl && (
+                    <a href={automationStatus.result.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs underline block mt-1">Ver Vídeo Gerado</a>
+                  )}
+                </>
+              )}
             </div>
           )}
         </section>

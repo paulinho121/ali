@@ -29,7 +29,9 @@ let currentCodeVerifier = ""; // Note: In serverless, this won't persist across 
 
 app.get('/api/auth/tiktok', (req, res) => {
     const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
-    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `https://${process.env.VERCEL_URL}`;
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `${protocol}://${host}`;
     const redirectUri = encodeURIComponent(`${redirectBase}/api/auth/tiktok/callback`);
 
     currentCodeVerifier = crypto.randomBytes(32).toString('base64url');
@@ -52,7 +54,10 @@ app.get('/api/auth/tiktok/callback', async (req, res) => {
     const { code } = req.query;
     const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim();
     const clientSecret = process.env.TIKTOK_CLIENT_SECRET?.trim();
-    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `https://${process.env.VERCEL_URL}`;
+
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const redirectBase = process.env.TIKTOK_REDIRECT_BASE_URL || `${protocol}://${host}`;
 
     try {
         const response = await axios.post('https://open.tiktokapis.com/v2/oauth/token/',

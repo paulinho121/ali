@@ -12,10 +12,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const aliexpress = require('../services/aliexpress');
-const trends = require('../services/trends');
-const social = require('../services/social');
-const video = require('../services/video');
+const aliexpress = require('../server/services/aliexpress');
+const trends = require('../server/services/trends');
+const social = require('../server/services/social');
+const video = require('../server/services/video');
 
 // Auth health check
 app.get('/api/health', (req, res) => {
@@ -97,7 +97,7 @@ app.all('/api/automation/run', async (req, res) => {
 
 async function runAutomation() {
     console.log('--- Iniciando Automação Diária ---');
-    const trend = await trends.getTrendingKeywords();
+    const trend = await trends.getDailyTrends();
     const productsRes = await aliexpress.searchByKeywords(trend[0]);
     const productList = productsRes?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product;
 
